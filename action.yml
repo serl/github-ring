@@ -1,6 +1,9 @@
 name: "GitHub Ring"
 description: "Check your GitHub repositories' configuration"
 inputs:
+  github-token:
+    description: "GitHub Token"
+    required: true
   query-string:
     description: "Query string"
     required: false
@@ -16,5 +19,5 @@ runs:
       env:
         QUERY_STRING: inputs.query-string
         EXPECTED_VALUES: inputs.expected-values
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: secrets.github-token
       shell: bash
