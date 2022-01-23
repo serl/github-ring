@@ -23,22 +23,27 @@ default_expected_values='{
 : "${EXPECTED_VALUES:=$default_expected_values}"
 
 
-log() {
-  echo "$@" >&2
-}
-
 box_seq() {
   # https://en.wikipedia.org/wiki/Box-drawing_character#Unix,_CP/M,_BBS
   echo -e "\e(0$*\e(B"
 }
+
 color_seq() {
   echo -e "\e[$*m"
+}
+
+log() {
+  echo "$@" >&2
+}
+
+log_error() {
+  log "$(color_seq 31)$*$(color_seq 0)"
 }
 
 dep_check() {
   for cmd in gh jq base64; do
     if ! command -v $cmd >/dev/null; then
-      log "$cmd is required"
+      log_error "$cmd is required"
       return 1
     fi
   done
@@ -125,13 +130,18 @@ process_repo() {
 main() {
   dep_check
 
+  if ! jq -e . >/dev/null 2>&1 <<<"$EXPECTED_VALUES"; then
+    log_error "Malformed JSON for EXPECTED_VALUES"
+    return 1
+  fi
+
   local data
   data="$(fetch_data)"
   count_repos="$(jq_data "$data" length)"
 
   if [[ $count_repos -eq 0 ]]; then
     log "No repositories found"
-    return 1
+    return 2
   fi
 
   log "Found $count_repos repositories"
@@ -142,10 +152,10 @@ main() {
   done
 
   if [[ $error_repos -eq 0 ]]; then
-    echo "$(color_seq 32)Congrats, all repositories match the expected configuration$(color_seq 0)"
+    log "$(color_seq 32)Congrats, all repositories match the expected configuration$(color_seq 0)"
   else
-    echo "$(color_seq 31)$error_repos out of $count_repos repositories don't match the expected configuration$(color_seq 0)"
-    return 1
+    log_error "$error_repos out of $count_repos repositories don't match the expected configuration"
+    return 3
   fi
 }
 
