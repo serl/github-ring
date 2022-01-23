@@ -95,22 +95,31 @@ jq_data() {
 }
 
 process_repo() {
-  local repo_data="$1"
+  local repo_data="$1" return_code=0
 
-  log "$(box_seq lq) $(color_seq '34;1')$(jq_data "$repo_data" .name)$(color_seq 0)"
+  set_dirty_and_log_repo_name() {
+    if [[ $return_code -eq 0 ]]; then
+      log "$(box_seq lq) $(color_seq '34;1')$(jq_data "$repo_data" .name)$(color_seq 0)"
+      return_code=1
+    fi
+  }
 
   for key in $(jq_data "$EXPECTED_VALUES" 'keys_unsorted[]'); do
     value=$(jq_data "$repo_data" ".$key")
     expected_value=$(jq_data "$EXPECTED_VALUES" ".\"$key\"")
     [[ $value == "$expected_value" ]] && continue
 
+    set_dirty_and_log_repo_name
     log "$(box_seq x)  $(color_seq 33)$key$(color_seq 0) is $(color_seq 31)$value$(color_seq 0) instead of $(color_seq '32;1')$expected_value$(color_seq 0)"
   done
 
   required_checks="$(jq_data "$repo_data" .defaultBranchRef.branchProtectionRule.requiredStatusCheckContexts)"
   if [[ $required_checks == null ]] || [[ $required_checks == '[]' ]]; then
+    set_dirty_and_log_repo_name
     log "$(box_seq x)  $(color_seq 31)No required checks for default branch$(color_seq 0)"
   fi
+
+  return $return_code
 }
 
 main() {
@@ -118,18 +127,26 @@ main() {
 
   local data
   data="$(fetch_data)"
-  count="$(jq_data "$data" length)"
+  count_repos="$(jq_data "$data" length)"
 
-  if [[ $count -eq 0 ]]; then
+  if [[ $count_repos -eq 0 ]]; then
     log "No repositories found"
     return 1
   fi
 
-  log "Found $count repositories"
+  log "Found $count_repos repositories"
 
+  error_repos=0
   for row in $(jq_data "$data" '.[] | @base64'); do
-    process_repo "$(echo "$row" | base64 --decode)"
+    process_repo "$(echo "$row" | base64 --decode)" || ((++error_repos))
   done
+
+  if [[ $error_repos -eq 0 ]]; then
+    echo "$(color_seq 32)Congrats, all repositories match the expected configuration$(color_seq 0)"
+  else
+    echo "$(color_seq 31)$error_repos out of $count_repos repositories don't match the expected configuration$(color_seq 0)"
+    return 1
+  fi
 }
 
 main
