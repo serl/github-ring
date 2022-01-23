@@ -17,7 +17,7 @@ runs:
   steps:
     - run: ${{ github.action_path }}/main.sh
       env:
-        QUERY_STRING: inputs.query-string
-        EXPECTED_VALUES: inputs.expected-values
-        GITHUB_TOKEN: inputs.github-token
+        QUERY_STRING: ${{ inputs.query-string }}
+        EXPECTED_VALUES: ${{ inputs.expected-values }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
       shell: bash
