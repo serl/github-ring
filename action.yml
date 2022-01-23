@@ -16,4 +16,5 @@ runs:
       env:
         QUERY_STRING: inputs.query-string
         EXPECTED_VALUES: inputs.expected-values
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       shell: bash
