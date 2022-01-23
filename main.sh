@@ -19,7 +19,7 @@ default_expected_values='{
   "defaultBranchRef.branchProtectionRule.allowsDeletions": false
 }'
 
-: "${QUERY_STRING:="user:{owner} archived:false is:public"}"
+: "${QUERY_STRING:="user:{owner} archived:false is:public"}" # uses the same syntax as repository search from the GitHub website, plus {owner} is automatically replaced
 : "${EXPECTED_VALUES:=$default_expected_values}"
 
 
