@@ -1,0 +1,19 @@
+name: "GitHub Ring"
+description: "Check your GitHub repositories' configuration"
+inputs:
+  query-string:
+    description: "Query string"
+    required: false
+    default: ""
+  expected-values:
+    description: "Expected values"
+    required: false
+    default: ""
+runs:
+  using: "composite"
+  steps:
+    - run: ${{ github.action_path }}/main.sh
+      env:
+        QUERY_STRING: ${{ inputs.query-string }}
+        EXPECTED_VALUES: ${{ inputs.expected-values }}
+      shell: bash
