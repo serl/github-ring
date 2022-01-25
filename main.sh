@@ -19,7 +19,7 @@ default_expected_values='{
   "defaultBranchRef.branchProtectionRule.allowsDeletions": false
 }'
 
-: "${QUERY_STRING:="user:{owner} archived:false is:public"}" # uses the same syntax as repository search from the GitHub website, plus {owner} is automatically replaced
+: "${QUERY_STRING:="user:{owner} archived:false is:public"}" # uses the same syntax as repository search from the GitHub website, plus {owner} is automatically replaced if on a repository
 : "${EXPECTED_VALUES:=$default_expected_values}"
 
 
@@ -58,6 +58,7 @@ fetch_data() {
         node {
           ... on Repository {
             name
+            viewerCanAdminister
             hasWikiEnabled
             hasIssuesEnabled
             hasProjectsEnabled
@@ -89,7 +90,7 @@ fetch_data() {
     }
   }'
 
-  log "Retrieving repository data"
+  log "Retrieving repository data for '$QUERY_STRING'"
   gh api graphql --paginate -F queryString="$QUERY_STRING" -f query="$query" | jq '.data.search.edges[].node' | jq -s
 }
 
@@ -108,6 +109,11 @@ process_repo() {
       return_code=1
     fi
   }
+
+  if [[ $(jq_data "$repo_data" .viewerCanAdminister) != true ]]; then
+    set_dirty_and_log_repo_name
+    log "$(box_seq x)  $(color_seq '33;1')WARNING: Connected user has no administrative access to this repository, data will be incomplete$(color_seq 0)"
+  fi
 
   for key in $(jq_data "$EXPECTED_VALUES" 'keys_unsorted[]'); do
     value=$(jq_data "$repo_data" ".$key")
