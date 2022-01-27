@@ -57,7 +57,8 @@ fetch_data() {
       edges {
         node {
           ... on Repository {
-            name
+            nameWithOwner
+            url
             viewerCanAdminister
             hasWikiEnabled
             hasIssuesEnabled
@@ -105,7 +106,7 @@ process_repo() {
 
   set_dirty_and_log_repo_name() {
     if [[ $return_code -eq 0 ]]; then
-      log "$(box_seq lq) $(color_seq '34;1')$(jq_data "$repo_data" .name)$(color_seq 0)"
+      log "$(box_seq lq) $(color_seq '34;1')$(jq_data "$repo_data" .nameWithOwner)$(color_seq 0) $(color_seq 90)$(jq_data "$repo_data" .url)/settings$(color_seq 0)"
       return_code=1
     fi
   }
