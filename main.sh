@@ -25,11 +25,11 @@ default_expected_values='{
 
 box_seq() {
   # https://en.wikipedia.org/wiki/Box-drawing_character#Unix,_CP/M,_BBS
-  echo -e "\e(0$*\e(B"
+  echo -e "\033(0$*\033(B"
 }
 
 color_seq() {
-  echo -e "\e[$*m"
+  echo -e "\033[$*m"
 }
 
 log() {
