@@ -11,7 +11,7 @@ You'll need to install the [gh cli tool](https://cli.github.com/) and authentica
 Then, you're ready to go as in:
 
 ```bash
-./main.sh
+QUERY_STRING="user:yourusername" ./main.sh
 ```
 
 You might want to customize the repository query and the list of the expected values.
